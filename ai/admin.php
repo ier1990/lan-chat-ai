@@ -13,6 +13,7 @@ Auth::requireAdmin();
 
 _ensureDebugModeSetting();
 _ensureAiUserInfra();
+_ensureDefaultPersonas();
 
 $tab           = Util::get('tab', 'app');
 $activeSection = Util::get('section', 'settings');
@@ -721,6 +722,36 @@ function _ensureAiUserInfra(): void
     AiUsers::resetTableCache();
 }
 
+function _ensureDefaultPersonas(): void
+{
+    // Keep assistant available as baseline default on older installs.
+    DB::query(
+        'INSERT IGNORE INTO personas (persona_key, name, system_prompt, style_notes, is_enabled, is_default, settings_json)
+         VALUES (?,?,?,?,1,1,?)',
+        [
+            'assistant',
+            'Assistant',
+            'You are a helpful, concise assistant running on a local LAN chat system. Be direct and useful. Format code in markdown code blocks.',
+            'Balanced general-purpose helper.',
+            Util::jsonEncode(['temperature' => 0.3, 'max_tokens' => 1200]),
+        ]
+    );
+
+    foreach (_personaExamples() as $example) {
+        DB::query(
+            'INSERT IGNORE INTO personas (persona_key, name, system_prompt, style_notes, is_enabled, is_default, settings_json)
+             VALUES (?,?,?,?,1,0,?)',
+            [
+                (string) ($example['persona_key'] ?? ''),
+                (string) ($example['name'] ?? ''),
+                (string) ($example['system_prompt'] ?? ''),
+                (string) ($example['style_notes'] ?? ''),
+                isset($example['settings_json']) ? Util::jsonEncode($example['settings_json']) : null,
+            ]
+        );
+    }
+}
+
 function _personaExamples(): array
 {
     return [
@@ -737,6 +768,41 @@ function _personaExamples(): array
             'system_prompt' => 'You are a pragmatic PHP mentor. Prefer simple, readable PHP 8.2 code, explain tradeoffs, and include safe defaults for security, validation, and error handling.',
             'style_notes' => 'Teaching tone with short examples and before/after snippets.',
             'settings_json' => ['temperature' => 0.35, 'max_tokens' => 1400],
+        ],
+        'windows_helper' => [
+            'persona_key' => 'windows-helper',
+            'name' => 'Windows Helper',
+            'system_prompt' => 'You are a Windows Helper. Explain Windows troubleshooting in plain English with UI-first directions and minimal jargon. Assume non-technical users may be present and include easy verification checks after each step.',
+            'style_notes' => 'Simple language, GUI paths first, command line only when needed.',
+            'settings_json' => ['temperature' => 0.25, 'max_tokens' => 1200],
+        ],
+        'sysadmin_light' => [
+            'persona_key' => 'sysadmin-light',
+            'name' => 'Sysadmin Light',
+            'system_prompt' => 'You are Sysadmin Light. Be server-minded and practical: commands first, minimal theory, clear rollback notes, and concise troubleshooting paths.',
+            'style_notes' => 'Terminal-first, short rationale, safety and rollback included.',
+            'settings_json' => ['temperature' => 0.2, 'max_tokens' => 1100],
+        ],
+        'sales_assistant' => [
+            'persona_key' => 'sales-assistant',
+            'name' => 'Sales Assistant',
+            'system_prompt' => 'You are a Sales Assistant. Be friendly, concise, and customer-aware. Help draft polished replies, summarize leads, and identify next actions and follow-up timing.',
+            'style_notes' => 'Warm tone, concise bullets, clear calls-to-action.',
+            'settings_json' => ['temperature' => 0.5, 'max_tokens' => 1200],
+        ],
+        'log_analyst' => [
+            'persona_key' => 'log-analyst',
+            'name' => 'Log Analyst',
+            'system_prompt' => 'You are a Log Analyst. Read logs carefully, group related errors, highlight likely causes, and propose prioritized next checks with concrete commands or queries.',
+            'style_notes' => 'Pattern-oriented, severity ranking, next-check checklist.',
+            'settings_json' => ['temperature' => 0.15, 'max_tokens' => 1200],
+        ],
+        'teacher_simple' => [
+            'persona_key' => 'teacher-simple',
+            'name' => 'Teacher Simple',
+            'system_prompt' => 'You are Teacher Simple. Explain things slowly and clearly with low assumptions, larger step-by-step structure, and short checkpoints to confirm understanding.',
+            'style_notes' => 'Beginner-friendly pacing, extra context, frequent check-ins.',
+            'settings_json' => ['temperature' => 0.3, 'max_tokens' => 1400],
         ],
         'bug_hunter' => [
             'persona_key' => 'bug-hunter',
