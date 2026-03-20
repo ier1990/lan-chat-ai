@@ -1,0 +1,10 @@
+# Keep this repo focused on the AI app under /ai
+*
+!.gitignore
+!.gitattributes
+!ai/
+!ai/**
+
+# Extra safety for secrets/runtime state inside app
+ai/config.php
+ai/.installed

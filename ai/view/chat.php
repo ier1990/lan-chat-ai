@@ -1,0 +1,56 @@
+<?php
+/**
+ * view/chat.php — Chat panel (included by layout.php when $view === 'chat').
+ */
+?>
+<div class="chat-panel">
+
+  <!-- Room header -->
+  <header class="room-header">
+    <?php if ($currentRoom): ?>
+      <span class="room-header-icon"><?= UI::roomIcon($currentRoom['room_type']) ?></span>
+      <span class="room-header-name"><?= Util::e($currentRoom['name']) ?></span>
+      <?php if ($currentRoom['room_type'] === 'channel'): ?>
+        <span class="room-header-type badge-channel">channel</span>
+      <?php elseif ($currentRoom['room_type'] === 'log'): ?>
+        <span class="room-header-type badge-log">log stream</span>
+      <?php endif; ?>
+      <?php
+        $rs = $roomSettings ?? [];
+        if (!empty($rs['ai_enabled'])):
+      ?>
+        <span class="ai-badge" title="AI is active in this room">⊕ AI <?= Util::e($rs['ai_trigger_mode'] ?? 'manual') ?></span>
+      <?php endif; ?>
+    <?php else: ?>
+      <span class="room-header-name muted">Select a room</span>
+    <?php endif; ?>
+  </header>
+
+  <!-- Messages scroll area -->
+  <div class="messages-area" id="messages-area">
+    <?php if (!$messages): ?>
+      <div class="empty-state">No messages yet. Say something!</div>
+    <?php else: ?>
+      <?php foreach ($messages as $msg): ?>
+        <?php require __DIR__ . '/parts/message.php'; ?>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+
+  <!-- Composer -->
+  <?php if ($currentRoom): ?>
+  <div class="composer" id="composer">
+    <form id="message-form" autocomplete="off">
+      <input type="hidden" id="room-id-input" value="<?= (int)$currentRoom['id'] ?>">
+      <textarea
+        id="message-input"
+        name="message"
+        rows="1"
+        placeholder="Message #<?= Util::e($currentRoom['name']) ?>  (Enter to send, Shift+Enter for newline)"
+      ></textarea>
+      <button type="button" class="send-btn" title="Send">↵</button>
+    </form>
+  </div>
+  <?php endif; ?>
+
+</div>
