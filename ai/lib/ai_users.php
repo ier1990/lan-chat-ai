@@ -260,6 +260,35 @@ class AiUsers
      */
     public static function dmMeta(int $roomId): ?array
     {
+        $room = Rooms::getById($roomId);
+        if (!$room || ($room['room_type'] ?? '') !== 'dm') {
+            return null;
+        }
+
+        // First: persona-targeted DM (participant_type=persona).
+        $persona = DB::fetch(
+            'SELECT p.id, p.name
+             FROM room_participants rp
+             JOIN personas p ON p.id = rp.participant_id
+             WHERE rp.room_id = ?
+               AND rp.participant_type = "persona"
+             LIMIT 1',
+            [$roomId]
+        );
+
+        if ($persona) {
+            return [
+                'ai_user_id'      => null,
+                'ai_user_name'    => '',
+                'ai_display_name' => '',
+                'persona_id'      => (int) $persona['id'],
+                'persona_name'    => (string) ($persona['name'] ?? ''),
+                'model'           => '',
+                'provider'        => '',
+            ];
+        }
+
+        // Second: AI-user DM (participant_type=user with role=ai).
         if (!self::hasTable()) {
             return null;
         }

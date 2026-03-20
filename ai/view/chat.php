@@ -17,7 +17,7 @@
       <?php endif; ?>
       <?php
         $rs = $roomSettings ?? [];
-        if (!empty($rs['ai_enabled'])):
+        if ($currentRoom['room_type'] !== 'dm' && !empty($rs['ai_enabled'])):
       ?>
         <span class="ai-badge" title="AI is active in this room">⊕ AI <?= Util::e($rs['ai_trigger_mode'] ?? 'manual') ?></span>
       <?php endif; ?>
