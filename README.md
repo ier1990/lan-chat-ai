@@ -19,6 +19,16 @@ See the full project guide in:
 
 - `ai/README.md`
 
+## Screenshots
+
+Chat UI:
+
+![LAN AI Chat UI](ai/assets/imgs/lan-ai-chat.png)
+
+Admin UI:
+
+![LAN AI Chat Admin UI](ai/assets/imgs/lan-ai-chat-admin.png)
+
 ## Release
 
 Current initial release tag:
