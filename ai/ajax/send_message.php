@@ -102,12 +102,13 @@ if ($dmAiUser) {
             $result['text'],
             'ai_reply',
             [
-                'tokens_in'  => $result['tokens_in'],
-                'tokens_out' => $result['tokens_out'],
-                'latency_ms' => $latency,
-                'model'      => $result['model'],
-                'provider'   => (string) ($dmAiUser['config']['provider_key'] ?? 'openai_compat'),
-                'ai_user'    => $dmAiUser['username'] ?? '',
+                'tokens_in'    => $result['tokens_in'],
+                'tokens_out'   => $result['tokens_out'],
+                'latency_ms'   => $latency,
+                'model'        => $result['model'],
+                'provider'     => (string) ($dmAiUser['config']['provider_key'] ?? 'openai_compat'),
+                'ai_user'      => $dmAiUser['username'] ?? '',
+                'persona_name' => $persona ? ($persona['name'] ?? null) : null,
             ]
         );
 
@@ -157,11 +158,12 @@ if (!$dmAiUser && Permissions::personaShouldReply($roomId, $text)) {
                 $result['text'],
                 'ai_reply',
                 [
-                    'tokens_in'  => $result['tokens_in'],
-                    'tokens_out' => $result['tokens_out'],
-                    'latency_ms' => $latency,
-                    'model'      => $result['model'],
-                    'provider'   => $provider->providerKey(),
+                    'tokens_in'    => $result['tokens_in'],
+                    'tokens_out'   => $result['tokens_out'],
+                    'latency_ms'   => $latency,
+                    'model'        => $result['model'],
+                    'provider'     => $provider->providerKey(),
+                    'persona_name' => $persona['name'] ?? null,
                 ]
             );
             $newMsgs = Messages::since($roomId, $msgId - 1);

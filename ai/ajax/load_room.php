@@ -44,8 +44,11 @@ DebugLog::event('debug.response', [
     'message_count' => count($messages),
 ]);
 
+$dmMeta = ($room['room_type'] === 'dm') ? AiUsers::dmMeta((int) $room['id']) : null;
+
 Util::jsonResponse([
     'ok'       => true,
     'room'     => $room,
     'messages' => $messages,
+    'dm_meta'  => $dmMeta,
 ]);

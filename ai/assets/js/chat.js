@@ -75,7 +75,7 @@
       .then(function (data) {
         if (!data.ok) { showError(data.error || 'Failed to load room'); return; }
         renderMessages(data.messages, true);
-        updateRoomHeader(data.room);
+        updateRoomHeader(data.room, data.dm_meta || null);
         if (roomIdInput()) roomIdInput().value = roomId;
         AI.roomId   = roomId;
         AI.roomSlug = slug;
@@ -95,12 +95,29 @@
       });
   }
 
-  function updateRoomHeader(room) {
+  function updateRoomHeader(room, dmMeta) {
     const header = document.querySelector('.room-header');
     if (!header) return;
     const icon = room.room_type === 'log' ? '⊙' : room.room_type === 'dm' ? '@' : '#';
     header.querySelector('.room-header-icon').textContent = icon;
     header.querySelector('.room-header-name').textContent = room.name;
+
+    // DM metadata bar.
+    const metaBar = document.getElementById('dm-meta-bar');
+    if (metaBar) {
+      if (dmMeta && room.room_type === 'dm') {
+        const parts = [];
+        if (dmMeta.persona_name) parts.push('⊕ ' + dmMeta.persona_name);
+        if (dmMeta.model)        parts.push(dmMeta.model);
+        if (dmMeta.provider)     parts.push(dmMeta.provider);
+        metaBar.textContent = parts.join(' · ');
+        metaBar.hidden = false;
+      } else {
+        metaBar.textContent = '';
+        metaBar.hidden = true;
+      }
+    }
+
     // Update composer placeholder.
     const inp = messageInput();
     if (inp) inp.placeholder = 'Message ' + icon + room.name + '  (Enter to send, Shift+Enter for newline)';
@@ -234,6 +251,7 @@
 
   function buildMessageEl(msg) {
     const isAi      = msg.sender_type === 'persona';
+    const isAiReply = msg.message_type === 'ai_reply';
     const isWebhook = msg.sender_type === 'webhook';
     const isSystem  = msg.sender_type === 'system';
 
@@ -245,16 +263,33 @@
     const initial = (msg.sender_name || '?').charAt(0).toUpperCase();
     const avCls   = 'avatar avatar-' + (msg.sender_type || 'user');
 
+    // AI badge for both persona-type and any ai_reply message (covers AI users).
     let badge = '';
-    if (isAi)      badge = '<span class="badge badge-ai">AI</span>';
-    if (isWebhook) badge = '<span class="badge badge-hook">↓</span>';
-    if (isSystem)  badge = '<span class="badge badge-sys">SYS</span>';
+    if (isAi || isAiReply) badge = '<span class="badge badge-ai">AI</span>';
+    if (isWebhook)         badge = '<span class="badge badge-hook">↓</span>';
+    if (isSystem)          badge = '<span class="badge badge-sys">SYS</span>';
 
     const time = msg.created_at
       ? new Date(msg.created_at.replace(' ', 'T')).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : '';
 
     const text = escapeHtml(msg.message_text || '').replace(/\n/g, '<br>');
+
+    // AI metadata footer: model · persona · provider · tokens · latency.
+    let aiMetaHtml = '';
+    if (isAiReply && msg.meta && msg.meta.model) {
+      const m = msg.meta;
+      const parts = [];
+      // Persona name only for AI-user messages (persona-type already has it as sender_name).
+      if (m.persona_name && !isAi) parts.push('⊕ ' + escapeHtml(m.persona_name));
+      if (m.model)                 parts.push(escapeHtml(m.model));
+      if (m.provider)              parts.push(escapeHtml(m.provider));
+      const tIn  = parseInt(m.tokens_in,  10) || 0;
+      const tOut = parseInt(m.tokens_out, 10) || 0;
+      if (tIn || tOut) parts.push(tIn + '↑ ' + tOut + '↓');
+      if (m.latency_ms) parts.push(parseInt(m.latency_ms, 10).toLocaleString() + 'ms');
+      if (parts.length) aiMetaHtml = '<div class="message-ai-meta">' + parts.join(' · ') + '</div>';
+    }
 
     const div = document.createElement('div');
     div.className    = rowCls;
@@ -268,6 +303,7 @@
           <span class="message-time" title="${escapeHtml(msg.created_at || '')}">${time}</span>
         </div>
         <div class="message-text">${text}</div>
+        ${aiMetaHtml}
       </div>`;
     return div;
   }

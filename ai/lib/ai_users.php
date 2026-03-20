@@ -254,6 +254,58 @@ class AiUsers
         return false;
     }
 
+    /**
+     * Return AI metadata for a DM room: persona, model, provider.
+     * Returns null if the room has no AI participant.
+     */
+    public static function dmMeta(int $roomId): ?array
+    {
+        if (!self::hasTable()) {
+            return null;
+        }
+
+        $aiUser = DB::fetch(
+            'SELECT u.id, u.username, u.display_name,
+                    auc.persona_id, auc.model_default, auc.provider_key
+             FROM room_participants rp
+             JOIN users u ON u.id = rp.participant_id
+             JOIN user_roles ur ON ur.user_id = u.id
+             JOIN roles r ON r.id = ur.role_id
+             LEFT JOIN ai_user_configs auc ON auc.user_id = u.id
+             WHERE rp.room_id = ?
+               AND rp.participant_type = "user"
+               AND u.is_active = 1
+               AND r.role_key = "ai"
+             LIMIT 1',
+            [$roomId]
+        );
+
+        if (!$aiUser) {
+            return null;
+        }
+
+        $personaName = null;
+        if (!empty($aiUser['persona_id'])) {
+            $personaName = (string) (DB::fetchColumn(
+                'SELECT name FROM personas WHERE id = ?',
+                [(int) $aiUser['persona_id']]
+            ) ?? '');
+            if ($personaName === '') {
+                $personaName = null;
+            }
+        }
+
+        return [
+            'ai_user_id'      => (int) $aiUser['id'],
+            'ai_user_name'    => (string) ($aiUser['username'] ?? ''),
+            'ai_display_name' => (string) ($aiUser['display_name'] ?? ''),
+            'persona_id'      => $aiUser['persona_id'] ? (int) $aiUser['persona_id'] : null,
+            'persona_name'    => $personaName,
+            'model'           => (string) ($aiUser['model_default'] ?? ''),
+            'provider'        => (string) ($aiUser['provider_key'] ?? ''),
+        ];
+    }
+
     private static function detectAppUrl(): ?string
     {
         $host = trim((string) ($_SERVER['HTTP_HOST'] ?? ''));

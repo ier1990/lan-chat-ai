@@ -47,9 +47,13 @@ if ($currentRoom) {
         (int) Settings::get('chat.max_history', 50)
     );
     $roomSettings = Rooms::settings((int) $currentRoom['id']);
+    $dmMeta       = ($currentRoom['room_type'] === 'dm')
+        ? AiUsers::dmMeta((int) $currentRoom['id'])
+        : null;
 } else {
     $messages     = [];
     $roomSettings = [];
+    $dmMeta       = null;
 }
 
 $title    = Settings::get('app.site_name', 'AI Chat');

@@ -560,6 +560,30 @@ input:disabled, textarea:disabled, select:disabled { opacity: .5; cursor: not-al
 
 /* ── Misc ──────────────────────────────────────────────────────────────── */
 .muted { color: var(--text-muted); }
+
+/* ── AI message metadata footer ────────────────────────────────────────── */
+.message-ai-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .4rem;
+  margin-top: .2rem;
+  font-size: .72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  line-height: 1.5;
+}
+
+/* ── DM room header AI/persona bar ─────────────────────────────────────── */
+.dm-meta-bar {
+  font-size: .75rem;
+  font-weight: 400;
+  color: var(--ai-color);
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 50%;
+}
 ::-webkit-scrollbar       { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

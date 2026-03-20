@@ -21,8 +21,22 @@
       ?>
         <span class="ai-badge" title="AI is active in this room">⊕ AI <?= Util::e($rs['ai_trigger_mode'] ?? 'manual') ?></span>
       <?php endif; ?>
+      <?php
+        // DM metadata bar: persona, model, provider
+        $dm = $dmMeta ?? null;
+        if ($currentRoom['room_type'] === 'dm' && $dm):
+          $dmParts = [];
+          if (!empty($dm['persona_name']))    $dmParts[] = '⊕ ' . Util::e($dm['persona_name']);
+          if (!empty($dm['model']))           $dmParts[] = Util::e($dm['model']);
+          if (!empty($dm['provider']))        $dmParts[] = Util::e($dm['provider']);
+      ?>
+        <span id="dm-meta-bar" class="dm-meta-bar"><?= implode(' · ', $dmParts) ?></span>
+      <?php else: ?>
+        <span id="dm-meta-bar" class="dm-meta-bar" hidden></span>
+      <?php endif; ?>
     <?php else: ?>
       <span class="room-header-name muted">Select a room</span>
+      <span id="dm-meta-bar" class="dm-meta-bar" hidden></span>
     <?php endif; ?>
   </header>
 
