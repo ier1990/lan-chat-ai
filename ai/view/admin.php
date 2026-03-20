@@ -241,6 +241,15 @@ $buildAdminUrl = static function (array $extra = []) use ($queryBase): string {
                     </div>
                     <textarea readonly rows="3" style="margin-top:.35rem;font-size:.8rem;"><?= Util::e($curlExample) ?></textarea>
                   <?php endif; ?>
+
+                  <?php if ($r['room_type'] === 'dm'): ?>
+                    <form method="post" style="margin-top:.45rem;display:inline-block;" onsubmit="return confirm('Delete DM room <?= Util::e($displayName) ?>? This removes its message history.');">
+                      <input type="hidden" name="csrf" value="<?= Util::e(Util::csrfToken()) ?>">
+                      <input type="hidden" name="_rooms_action" value="delete_dm_room">
+                      <input type="hidden" name="room_id" value="<?= $rid ?>">
+                      <button type="submit" class="btn btn-small" style="background:#7d3030;border-color:#7d3030;">Delete DM</button>
+                    </form>
+                  <?php endif; ?>
                 </div>
               </td>
             </tr>

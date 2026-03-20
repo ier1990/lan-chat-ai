@@ -391,6 +391,21 @@ if (Util::isPost() && isset($_POST['_rooms_action'])) {
         }
     }
 
+    if ($action === 'delete_dm_room') {
+        $room = Rooms::getById($roomId);
+
+        if (!$room) {
+            $flash = 'Room not found.';
+            $flashType = 'error';
+        } elseif (($room['room_type'] ?? '') !== 'dm') {
+            $flash = 'Only DM rooms can be deleted with this action.';
+            $flashType = 'error';
+        } else {
+            DB::query('DELETE FROM rooms WHERE id = ? LIMIT 1', [$roomId]);
+            $flash = 'DM room deleted.';
+        }
+    }
+
     if ($action === 'create_or_rotate_webhook') {
         $room = Rooms::getById($roomId);
         $webhookName = Util::post('webhook_name');
