@@ -594,3 +594,96 @@ input:disabled, textarea:disabled, select:disabled { opacity: .5; cursor: not-al
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Memory page ──────────────────────────────────────────────────────────── */
+.memory-page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+.memory-header { margin-bottom: 1.5rem; }
+.memory-title  { font-size: 1.4rem; margin: 0 0 .35rem; }
+.memory-subtitle { font-size: .88rem; }
+
+.memory-form-section,
+.memory-search-section,
+.memory-list-section { margin-bottom: 2rem; }
+
+.memory-form-section h2,
+.memory-list-section h2 { font-size: 1rem; margin-bottom: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+
+.memory-form { display: flex; flex-direction: column; gap: .75rem; }
+.mem-content-area { resize: vertical; min-height: 80px; }
+
+.form-row-inline { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+.mem-secret-wrap { padding-top: 1.6rem; }
+.help-text { font-size: .8rem; }
+.required { color: var(--accent, #e05); }
+
+.mem-search-form { display: flex; gap: .5rem; align-items: center; }
+.mem-search-input { flex: 1; }
+
+.memory-list { display: flex; flex-direction: column; gap: .75rem; }
+.memory-empty { font-style: italic; }
+
+.memory-card {
+  background: var(--bg-secondary, #1e2030);
+  border: 1px solid var(--border, #333);
+  border-radius: 8px;
+  padding: .9rem 1rem;
+}
+.memory-card--secret { border-color: #a0522d55; }
+.memory-card--other  { opacity: .88; }
+
+.memory-card-header {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-wrap: wrap;
+  margin-bottom: .45rem;
+}
+.memory-card-title { font-weight: 600; font-size: .95rem; }
+
+.memory-card-content { font-size: .9rem; color: var(--text-muted, #aaa); word-break: break-word; margin-bottom: .5rem; }
+
+.memory-card-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; }
+.mem-tag {
+  font-size: .75rem;
+  background: var(--bg-tertiary, #2a2d3e);
+  color: var(--text-muted, #aaa);
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.mem-tag:hover { color: var(--text, #eee); }
+
+.memory-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.memory-card-date { font-size: .78rem; }
+.memory-card-actions { display: flex; gap: .4rem; }
+
+/* Badge variants */
+.badge-accent  { background: #234; color: #69c; border-color: #36c3; }
+.badge-secret  { background: #3a1e0a; color: #c96; border-color: #c963; }
+
+/* Admin create details */
+.mem-admin-create summary { list-style: none; }
+.mem-admin-create summary::-webkit-details-marker { display: none; }
+.mem-admin-create > .memory-form { margin-top: .75rem; padding: .9rem; background: var(--bg-secondary, #1e2030); border: 1px solid var(--border, #333); border-radius: 6px; }
+
+/* Active sidebar link */
+.sidebar-link--active { color: var(--accent, #7aa2f7) !important; }
+
+/* Inline form (delete button inline with row) */
+.inline-form { display: inline; }
+
+@media (max-width: 640px) {
+  .form-row-inline { flex-direction: column; gap: .5rem; }
+  .mem-secret-wrap { padding-top: 0; }
+  .memory-card-footer { flex-direction: column; align-items: flex-start; }
+}

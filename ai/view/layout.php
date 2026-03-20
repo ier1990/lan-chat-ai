@@ -95,6 +95,7 @@ $isStandaloneAdmin = ($view ?? '') === 'admin' && !empty($standalone);
       <?php if (Auth::isAdmin()): ?>
         <a href="/ai/admin.php?standalone=1" target="_blank" rel="noopener" class="sidebar-link" title="Admin (new tab)">⚙</a>
       <?php endif; ?>
+      <a href="/ai/memory.php" class="sidebar-link<?= ($view ?? '') === 'memory' ? ' sidebar-link--active' : '' ?>" title="Memory">🗂</a>
       <button class="sidebar-link js-logout" title="Logout">⏻</button>
     </div>
 
@@ -108,8 +109,9 @@ $isStandaloneAdmin = ($view ?? '') === 'admin' && !empty($standalone);
     <?php endif; ?>
 
     <?php
-    if ($view === 'chat')  require __DIR__ . '/chat.php';
-    if ($view === 'admin') require __DIR__ . '/admin.php';
+    if ($view === 'chat')   require __DIR__ . '/chat.php';
+    if ($view === 'admin')  require __DIR__ . '/admin.php';
+    if ($view === 'memory') require __DIR__ . '/memory.php';
     ?>
   </main>
 

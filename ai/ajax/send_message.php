@@ -91,6 +91,16 @@ if ($dmAiUser) {
             ];
         }
 
+        // Inject global non-secret memory context after system prompt, before history.
+        $memCtx = Memory::formatAiContext(Memory::getAiContext($text, 5));
+        if ($memCtx !== '') {
+            $insertAt = 0;
+            foreach ($chatMsgs as $i => $cm) {
+                if ($cm['role'] === 'system') { $insertAt = $i + 1; } else { break; }
+            }
+            array_splice($chatMsgs, $insertAt, 0, [['role' => 'system', 'content' => $memCtx]]);
+        }
+
         $start   = microtime(true);
         $result  = AiUsers::chat($dmAiUser['config'], $chatMsgs);
         $latency = (int) round((microtime(true) - $start) * 1000);
@@ -145,6 +155,16 @@ if (!$dmAiUser && Permissions::personaShouldReply($roomId, $text)) {
                     'role'    => $h['sender_type'] === 'persona' ? 'assistant' : 'user',
                     'content' => $h['message_text'],
                 ];
+            }
+
+            // Inject global non-secret memory context after system prompt, before history.
+            $memCtx = Memory::formatAiContext(Memory::getAiContext($text, 5));
+            if ($memCtx !== '') {
+                $insertAt = 0;
+                foreach ($chatMsgs as $i => $cm) {
+                    if ($cm['role'] === 'system') { $insertAt = $i + 1; } else { break; }
+                }
+                array_splice($chatMsgs, $insertAt, 0, [['role' => 'system', 'content' => $memCtx]]);
             }
 
             $start    = microtime(true);

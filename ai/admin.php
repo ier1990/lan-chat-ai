@@ -14,6 +14,7 @@ Auth::requireAdmin();
 _ensureDebugModeSetting();
 _ensureAiUserInfra();
 _ensureDefaultPersonas();
+Memory::ensureTable();
 
 $tab           = Util::get('tab', 'app');
 $activeSection = Util::get('section', 'settings');
@@ -614,6 +615,39 @@ if (Util::isPost() && isset($_POST['_persona_action'])) {
     }
 }
 
+if (Util::isPost() && isset($_POST['_memory_action'])) {
+    Util::requireCsrf();
+    $action = Util::post('_memory_action');
+    $memId  = (int) Util::post('mem_id');
+
+    if ($action === 'save') {
+        $content = trim((string) ($_POST['content'] ?? ''));
+        if ($content === '') {
+            $flash     = 'Content is required.';
+            $flashType = 'error';
+        } else {
+            Memory::save([
+                'id'        => $memId,
+                'title'     => Util::post('title'),
+                'content'   => $content,
+                'tags'      => Util::post('tags'),
+                'scope'     => Util::post('scope', 'private'),
+                'is_secret' => Util::post('is_secret', '0') === '1' ? 1 : 0,
+            ], (int) Auth::id());
+            $flash = 'Memory saved.';
+        }
+    }
+
+    if ($action === 'delete') {
+        if (Memory::delete($memId, (int) Auth::id(), true)) {
+            $flash = 'Memory deleted.';
+        } else {
+            $flash     = 'Memory not found.';
+            $flashType = 'error';
+        }
+    }
+}
+
 $personaExport = Util::get('persona_export');
 if ($activeSection === 'personas' && $personaExport !== '') {
     $exportPayload = null;
@@ -688,6 +722,7 @@ $models    = DB::fetchAll('SELECT m.*, p.name AS provider_name FROM ai_models m 
 
 $settingsTabs = SettingsMeta::getTabs();
 $tabFields    = $tab && in_array($tab, $settingsTabs, true) ? SettingsMeta::getByTab($tab) : [];
+$allMemories  = $activeSection === 'memories' ? Memory::getAll() : [];
 
 $title = 'Admin — ' . Settings::get('app.site_name', 'AI Chat');
 $view  = 'admin';

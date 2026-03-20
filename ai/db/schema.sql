@@ -164,3 +164,18 @@ CREATE TABLE IF NOT EXISTS webhook_sources (
     updated_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (target_room_id) REFERENCES rooms(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS memories (
+    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    owner_id     INT UNSIGNED NOT NULL DEFAULT 0,
+    scope        ENUM('private','global') NOT NULL DEFAULT 'private',
+    is_secret    TINYINT(1)   NOT NULL DEFAULT 0,
+    title        VARCHAR(200) NOT NULL DEFAULT '',
+    content      TEXT NOT NULL,
+    tags         VARCHAR(500) NOT NULL DEFAULT '',
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_owner_scope (owner_id, scope),
+    FULLTEXT idx_ft_search (title, content, tags)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
