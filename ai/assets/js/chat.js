@@ -14,6 +14,7 @@
   const debugMode = !!AI.debugEnabled;
 
   let currentRoomId   = AI.roomId   || 0;
+  let currentRoomType = '';
   let lastMessageId   = 0;
   let pollTimer       = null;
   let isSending       = false;
@@ -98,6 +99,7 @@
   function updateRoomHeader(room, dmMeta) {
     const header = document.querySelector('.room-header');
     if (!header) return;
+    currentRoomType = room.room_type || '';
     const icon = room.room_type === 'log' ? '⊙' : room.room_type === 'dm' ? '@' : '#';
     header.querySelector('.room-header-icon').textContent = icon;
     header.querySelector('.room-header-name').textContent = room.name;
@@ -121,6 +123,37 @@
     // Update composer placeholder.
     const inp = messageInput();
     if (inp) inp.placeholder = 'Message ' + icon + room.name + '  (Enter to send, Shift+Enter for newline)';
+  }
+
+  function hydrateDmMetaFromMessages(messages) {
+    if (currentRoomType !== 'dm' || !Array.isArray(messages) || !messages.length) return;
+    const metaBar = document.getElementById('dm-meta-bar');
+    if (!metaBar) return;
+
+    // Use latest AI reply metadata as authoritative identity for the active DM.
+    let latestMeta = null;
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const msg = messages[i] || {};
+      if (msg.message_type !== 'ai_reply' || !msg.meta) continue;
+      const m = msg.meta;
+      if (m.persona_name || m.model || m.provider) {
+        latestMeta = m;
+        break;
+      }
+    }
+    if (!latestMeta) return;
+
+    const parts = [];
+    if (latestMeta.persona_name) parts.push('⊕ ' + latestMeta.persona_name);
+    if (latestMeta.model)        parts.push(latestMeta.model);
+    if (latestMeta.provider)     parts.push(latestMeta.provider);
+    if (!parts.length) return;
+
+    const next = parts.join(' · ');
+    if (metaBar.textContent !== next) {
+      metaBar.textContent = next;
+      metaBar.hidden = false;
+    }
   }
 
   /* ── Composer ──────────────────────────────────────────────────────── */
@@ -230,6 +263,7 @@
       return;
     }
     messages.forEach(msg => area.appendChild(buildMessageEl(msg)));
+    hydrateDmMetaFromMessages(messages);
     scrollToBottom();
   }
 
@@ -246,6 +280,7 @@
         lastMessageId = parseInt(msg.id, 10);
       }
     });
+    hydrateDmMetaFromMessages(messages);
     scrollToBottom();
   }
 
