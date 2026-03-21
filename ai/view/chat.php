@@ -67,4 +67,17 @@
   </div>
   <?php endif; ?>
 
+  <!-- Slash output modal (ephemeral, client-only) -->
+  <div class="modal-backdrop" id="slash-output-backdrop" hidden>
+    <div class="modal slash-output-modal" role="dialog" aria-modal="true" aria-labelledby="slash-output-title">
+      <div class="modal-header">
+        <span class="modal-title" id="slash-output-title">Command Output</span>
+        <button class="btn-icon modal-close" id="slash-output-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <pre id="slash-output-content" class="slash-output-content"></pre>
+      </div>
+    </div>
+  </div>
+
 </div>

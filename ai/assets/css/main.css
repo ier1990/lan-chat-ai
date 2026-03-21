@@ -558,6 +558,25 @@ input:disabled, textarea:disabled, select:disabled { opacity: .5; cursor: not-al
   font-size: .9rem;
 }
 .dm-picker-username { color: var(--text-muted); font-size: .8rem; }
+
+/* Slash command popup */
+.slash-output-modal {
+  max-width: 760px;
+}
+.slash-output-content {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: .88rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 60vh;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .8rem;
+}
 .dm-picker-empty { color: var(--text-muted); font-size: .875rem; padding: .5rem 0; }
 
 /* ── Misc ──────────────────────────────────────────────────────────────── */

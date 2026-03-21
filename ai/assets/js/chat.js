@@ -469,7 +469,44 @@
       return;
     }
     if (result.notice) {
-      showClientFlash(result.notice, result.type || 'info');
+      showSlashOutput(result.notice, result.type || 'info');
+    }
+  }
+
+  function showSlashOutput(text, type) {
+    const backdrop = document.getElementById('slash-output-backdrop');
+    const content  = document.getElementById('slash-output-content');
+    const closeBtn = document.getElementById('slash-output-close');
+    const titleEl  = document.getElementById('slash-output-title');
+    if (!backdrop || !content) {
+      showClientFlash(text, type || 'info');
+      return;
+    }
+
+    const titleByType = {
+      error: 'Command Error',
+      success: 'Command Success',
+      info: 'Command Output',
+    };
+    if (titleEl) {
+      titleEl.textContent = titleByType[type] || 'Command Output';
+    }
+    content.textContent = String(text || '');
+    backdrop.hidden = false;
+
+    if (!backdrop.dataset.bound) {
+      backdrop.dataset.bound = '1';
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          backdrop.hidden = true;
+        });
+      }
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) backdrop.hidden = true;
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !backdrop.hidden) backdrop.hidden = true;
+      });
     }
   }
 
@@ -533,15 +570,20 @@
   }
 
   function showClientFlash(msg, type) {
-    console.error('[AI Chat]', msg);
+    if ((type || 'info') === 'error') {
+      console.error('[AI Chat]', msg);
+    }
 
     let box = document.getElementById('client-error-box');
     if (!box) {
       box = document.createElement('div');
       box.id = 'client-error-box';
-      const main = document.getElementById('main');
-      if (main) {
-        main.prepend(box);
+      const panel = document.querySelector('.chat-panel');
+      if (panel) {
+        panel.prepend(box);
+      } else {
+        const main = document.getElementById('main');
+        if (main) main.prepend(box);
       }
     }
     if (box) {
