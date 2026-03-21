@@ -60,7 +60,7 @@
         id="message-input"
         name="message"
         rows="1"
-        placeholder="Message #<?= Util::e($currentRoom['name']) ?>  (Enter to send, Shift+Enter for newline)"
+        placeholder="Message #<?= Util::e($currentRoom['name']) ?>  (Enter to send, Shift+Enter for newline, /help for commands)"
       ></textarea>
       <button type="button" class="send-btn" title="Send">↵</button>
     </form>

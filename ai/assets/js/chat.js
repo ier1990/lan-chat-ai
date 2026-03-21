@@ -122,7 +122,7 @@
 
     // Update composer placeholder.
     const inp = messageInput();
-    if (inp) inp.placeholder = 'Message ' + icon + room.name + '  (Enter to send, Shift+Enter for newline)';
+    if (inp) inp.placeholder = 'Message ' + icon + room.name + '  (Enter to send, Shift+Enter for newline, /help for commands)';
   }
 
   function hydrateDmMetaFromMessages(messages) {
@@ -219,6 +219,10 @@
           messageCount: data.messages ? data.messages.length : 0,
         });
         if (!data.ok) { showError(data.error || 'Send failed'); return; }
+        if (data.slash) {
+          handleSlashResult(data.slash);
+          return;
+        }
         if (data.messages && data.messages.length) {
           appendMessages(data.messages);
         }
@@ -458,6 +462,17 @@
       .catch(err => showError('Network error: ' + err.message));
   }
 
+  function handleSlashResult(result) {
+    if (!result) return;
+    if (result.switch_room && result.switch_room.slug) {
+      window.location.href = '/ai/?room=' + encodeURIComponent(result.switch_room.slug);
+      return;
+    }
+    if (result.notice) {
+      showClientFlash(result.notice, result.type || 'info');
+    }
+  }
+
   /* ── Logout ────────────────────────────────────────────────────────── */
   function bindLogout() {
     document.addEventListener('click', function (e) {
@@ -514,20 +529,23 @@
   }
 
   function showError(msg) {
+    showClientFlash(msg, 'error');
+  }
+
+  function showClientFlash(msg, type) {
     console.error('[AI Chat]', msg);
 
-    // Surface a visible error so it never feels like "nothing happened".
     let box = document.getElementById('client-error-box');
     if (!box) {
       box = document.createElement('div');
       box.id = 'client-error-box';
-      box.className = 'flash flash-error';
       const main = document.getElementById('main');
       if (main) {
         main.prepend(box);
       }
     }
     if (box) {
+      box.className = 'flash flash-' + (type || 'info');
       box.textContent = msg;
     }
   }

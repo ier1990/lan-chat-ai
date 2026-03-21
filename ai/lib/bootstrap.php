@@ -26,6 +26,7 @@ require_once AI_LIB . '/permissions.php';
 require_once AI_LIB . '/ui.php';
 require_once AI_LIB . '/debug_log.php';
 require_once AI_LIB . '/memory.php';
+require_once AI_LIB . '/slash_commands.php';
 
 // Start session with safe defaults.
 if (session_status() === PHP_SESSION_NONE) {

@@ -215,6 +215,8 @@ class Memory
             return [];
         }
 
+        $limit = max(1, (int) $limit);
+
         $q = trim($messageText);
         if (strlen($q) > 3) {
             try {
@@ -224,8 +226,8 @@ class Memory
                     "SELECT title, content, tags FROM memories
                      WHERE scope = 'global' AND is_secret = 0
                        AND MATCH(title,content,tags) AGAINST (? IN BOOLEAN MODE)
-                     ORDER BY updated_at DESC LIMIT ?",
-                    [$ftq, $limit]
+                     ORDER BY updated_at DESC LIMIT {$limit}",
+                    [$ftq]
                 );
                 if ($rows) {
                     return $rows;
@@ -238,8 +240,60 @@ class Memory
         return DB::fetchAll(
             "SELECT title, content, tags FROM memories
              WHERE scope = 'global' AND is_secret = 0
-             ORDER BY updated_at DESC LIMIT ?",
-            [$limit]
+             ORDER BY updated_at DESC LIMIT {$limit}"
+        );
+    }
+
+    /**
+     * Context for a specific AI user: global non-secret + that AI user's private non-secret memories.
+     * This keeps user-private memories isolated while allowing AI accounts to keep their own safe context.
+     */
+    public static function getAiContextForOwner(string $messageText, int $ownerId, int $limit = 5): array
+    {
+        if (!self::hasTable()) {
+            return [];
+        }
+
+        $ownerId = (int) $ownerId;
+        if ($ownerId <= 0) {
+            return self::getAiContext($messageText, $limit);
+        }
+
+        $limit = max(1, (int) $limit);
+        $q = trim($messageText);
+        if (strlen($q) > 3) {
+            try {
+                $words = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+                $ftq   = implode(' ', array_map(fn($w) => preg_replace('/[+\-><()*~"@]+/', '', $w) . '*', $words));
+                $rows  = DB::fetchAll(
+                    "SELECT title, content, tags FROM memories
+                     WHERE is_secret = 0
+                       AND (
+                            scope = 'global'
+                            OR (scope = 'private' AND owner_id = ?)
+                       )
+                       AND MATCH(title,content,tags) AGAINST (? IN BOOLEAN MODE)
+                     ORDER BY CASE WHEN scope = 'private' THEN 0 ELSE 1 END, updated_at DESC
+                     LIMIT {$limit}",
+                    [$ownerId, $ftq]
+                );
+                if ($rows) {
+                    return $rows;
+                }
+            } catch (Throwable) {
+            }
+        }
+
+        return DB::fetchAll(
+            "SELECT title, content, tags FROM memories
+             WHERE is_secret = 0
+               AND (
+                    scope = 'global'
+                    OR (scope = 'private' AND owner_id = ?)
+               )
+             ORDER BY CASE WHEN scope = 'private' THEN 0 ELSE 1 END, updated_at DESC
+             LIMIT {$limit}",
+            [$ownerId]
         );
     }
 

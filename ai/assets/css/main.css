@@ -454,8 +454,10 @@ input:disabled, textarea:disabled, select:disabled { opacity: .5; cursor: not-al
   border-radius: var(--radius);
   margin-bottom: 1rem;
   font-size: .9rem;
+  white-space: pre-wrap;
 }
 .flash-success { background: #1a3d1a; border: 1px solid #2d6b2d; color: #98ef98; }
+.flash-info    { background: #17293d; border: 1px solid #27537a; color: #9dcef7; }
 .flash-error   { background: #3d1a1a; border: 1px solid #6b2d2d; color: #ef9898; }
 
 /* ── Login page ────────────────────────────────────────────────────────── */

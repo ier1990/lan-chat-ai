@@ -65,6 +65,18 @@ if (mb_strlen($text) > 8000) {
     $text = mb_substr($text, 0, 8000);
 }
 
+$slash = SlashCommands::dispatch($roomId, (int) Auth::id(), $text);
+if ($slash !== null) {
+    DebugLog::event('debug.response', [
+        'route'   => 'ajax.send_message.post',
+        'ok'      => true,
+        'room_id' => $roomId,
+        'slash'   => true,
+        'type'    => $slash['type'] ?? 'info',
+    ]);
+    Util::jsonResponse(['ok' => true, 'messages' => [], 'slash' => $slash]);
+}
+
 $msgId   = Messages::post($roomId, 'user', Auth::id(), $text);
 $newMsgs = Messages::since($roomId, $msgId - 1);
 
@@ -82,6 +94,10 @@ if ($dmAiUser) {
         if ($persona && !empty($persona['system_prompt'])) {
             $chatMsgs[] = ['role' => 'system', 'content' => $persona['system_prompt']];
         }
+        $chatMsgs[] = [
+            'role' => 'system',
+            'content' => 'Users can manage memory with slash commands. If they ask you to remember something for later, direct them to /mem help. In this AI DM, /mem ai-add Title | Content | tags saves private memory for this AI account.',
+        ];
 
         foreach ($history as $h) {
             $isAssistant = $h['sender_type'] === 'user' && (int) $h['sender_id'] === (int) $dmAiUser['id'];
@@ -91,8 +107,8 @@ if ($dmAiUser) {
             ];
         }
 
-        // Inject global non-secret memory context after system prompt, before history.
-        $memCtx = Memory::formatAiContext(Memory::getAiContext($text, 5));
+        // Inject global non-secret context plus this AI user's private non-secret memory.
+        $memCtx = Memory::formatAiContext(Memory::getAiContextForOwner($text, (int) $dmAiUser['id'], 5));
         if ($memCtx !== '') {
             $insertAt = 0;
             foreach ($chatMsgs as $i => $cm) {
@@ -150,6 +166,10 @@ if (!$dmAiUser && Permissions::personaShouldReply($roomId, $text)) {
             if ($persona['system_prompt']) {
                 $chatMsgs[] = ['role' => 'system', 'content' => $persona['system_prompt']];
             }
+            $chatMsgs[] = [
+                'role' => 'system',
+                'content' => 'Users can manage personal and shared memory with slash commands. If they ask to save something for later, direct them to /mem help.',
+            ];
             foreach ($history as $h) {
                 $chatMsgs[] = [
                     'role'    => $h['sender_type'] === 'persona' ? 'assistant' : 'user',
