@@ -99,11 +99,18 @@ if ($dmAiUser) {
             'content' => 'Users can manage memory with slash commands. If they ask you to remember something for later, direct them to /mem help. In this AI DM, /mem ai-add Title | Content | tags saves private memory for this AI account.',
         ];
 
+        // Strip leading @username mention from each user message in history
+        // so the AI sees clean text rather than raw @handles.
+        $aiHandle = '@' . ($dmAiUser['username'] ?? '');
         foreach ($history as $h) {
             $isAssistant = $h['sender_type'] === 'user' && (int) $h['sender_id'] === (int) $dmAiUser['id'];
+            $msgText = $h['message_text'];
+            if (!$isAssistant) {
+                $msgText = _stripMention($msgText, $aiHandle);
+            }
             $chatMsgs[] = [
                 'role'    => $isAssistant ? 'assistant' : 'user',
-                'content' => $h['message_text'],
+                'content' => $msgText,
             ];
         }
 
@@ -148,6 +155,15 @@ if ($dmAiUser) {
             'room_id' => $roomId,
             'ai_user' => $dmAiUser['username'] ?? '',
         ]);
+        // Post a visible notice so the failure isn't silent.
+        Messages::post(
+            $roomId,
+            'system',
+            0,
+            '⚠ ' . ($dmAiUser['display_name'] ?? 'AI') . ' could not reply: ' . $e->getMessage(),
+            'notice'
+        );
+        $newMsgs = Messages::since($roomId, $msgId - 1);
     }
 }
 
@@ -224,3 +240,20 @@ DebugLog::event('debug.response', [
 ]);
 
 Util::jsonResponse(['ok' => true, 'messages' => $newMsgs]);
+
+/**
+ * Strip a leading @handle from a message so the AI sees clean text.
+ * e.g. "@stepfun what should I eat?" → "what should I eat?"
+ */
+function _stripMention(string $text, string $handle): string
+{
+    $text = trim($text);
+    if ($handle === '@' || $handle === '') {
+        return $text;
+    }
+    // Case-insensitive match at the start of the message.
+    if (stripos($text, $handle) === 0) {
+        $text = trim(substr($text, strlen($handle)));
+    }
+    return $text !== '' ? $text : trim($text);
+}
