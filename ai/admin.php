@@ -184,6 +184,50 @@ if (Util::isPost() && isset($_POST['_provider_action'])) {
             }
         }
     }
+
+    if ($action === 'save_provider') {
+        $providerId = (int) Util::post('provider_id');
+        $baseUrl    = trim(Util::post('base_url'));
+        $apiKey     = Util::post('api_key');        // blank = keep existing
+        $modelKey   = trim(Util::post('model_default'));
+        $doRefresh  = Util::post('refresh_models', '0') === '1';
+
+        $provider = DB::fetch('SELECT * FROM ai_providers WHERE id = ?', [$providerId]);
+        if (!$provider) {
+            $flash     = 'Provider not found.';
+            $flashType = 'error';
+        } elseif ($baseUrl === '') {
+            $flash     = 'Endpoint URL is required.';
+            $flashType = 'error';
+        } else {
+            $update = ['base_url' => $baseUrl];
+            if ($apiKey !== '') {
+                $update['api_key'] = $apiKey;
+            }
+            if ($modelKey !== '') {
+                $update['model_default'] = $modelKey;
+            }
+            DB::update('ai_providers', $update, 'id = ?', [$providerId]);
+
+            // Re-fetch so syncProviderModels uses the saved URL/key.
+            $provider = DB::fetch('SELECT * FROM ai_providers WHERE id = ?', [$providerId]);
+
+            if ($doRefresh) {
+                try {
+                    $sync  = AiProvider::syncProviderModels($provider);
+                    $flash = 'Saved. ' . $sync['total'] . ' model(s) found, ' . $sync['added'] . ' new.';
+                    if ($sync['default_model']) {
+                        $flash .= ' Auto-selected: ' . $sync['default_model'] . '.';
+                    }
+                } catch (Throwable $e) {
+                    $flash     = 'Saved, but model fetch failed: ' . $e->getMessage();
+                    $flashType = 'error';
+                }
+            } else {
+                $flash = 'Provider saved.';
+            }
+        }
+    }
 }
 
 if (Util::isPost() && isset($_POST['_ai_users_action'])) {
@@ -404,6 +448,21 @@ if (Util::isPost() && isset($_POST['_rooms_action'])) {
         } else {
             DB::query('DELETE FROM rooms WHERE id = ? LIMIT 1', [$roomId]);
             $flash = 'DM room deleted.';
+        }
+    }
+
+    if ($action === 'delete_room') {
+        $room = Rooms::getById($roomId);
+
+        if (!$room) {
+            $flash = 'Room not found.';
+            $flashType = 'error';
+        } elseif (in_array($room['room_type'] ?? '', ['log'], true)) {
+            $flash = 'System rooms cannot be deleted.';
+            $flashType = 'error';
+        } else {
+            DB::query('DELETE FROM rooms WHERE id = ? LIMIT 1', [$roomId]);
+            $flash = 'Room "' . $room['name'] . '" deleted.';
         }
     }
 
