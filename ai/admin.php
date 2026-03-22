@@ -1,8 +1,13 @@
 <?php
 /**
- * admin.php — Settings and administration panel. Admin role required.
+ * admin.php — Redirect stub. Admin panel moved to /ai/admin/.
  */
 require_once __DIR__ . '/lib/bootstrap.php';
+
+// Preserve any query params (section, tab, etc.) on the redirect.
+$qs = $_SERVER['QUERY_STRING'] ?? '';
+Util::redirect('/ai/admin/' . ($qs !== '' ? '?' . $qs : ''));
+exit;
 
 if (!file_exists(AI_INSTALLED_FLAG)) {
     Util::redirect('/ai/install.php');
