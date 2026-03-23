@@ -9,3 +9,7 @@
 # Extra safety for secrets/runtime state inside app
 ai/config.php
 ai/.installed
+
+# Admin password protection files (local only, never commit)
+ai/admin/.htaccess
+ai/admin/.htpasswd
