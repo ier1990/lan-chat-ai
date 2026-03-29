@@ -50,6 +50,7 @@
           <?= Util::e($label) ?>
         </a>
       <?php endforeach; ?>
+      <a href="/ai/admin/mc.php" class="admin-nav-item">Memory Coder</a>
     </aside>
 
     <div class="admin-content">

@@ -23,14 +23,15 @@ It runs on XAMPP (Apache + PHP + MySQL), keeps almost all runtime config in the 
   - copyable webhook URL and curl examples
 - Inbound webhook receiver for posting into rooms
 - Data-driven settings UI (settings + settings_meta)
+- **Memory Coder** — two-panel codebase browser that generates and stores AI summaries of source files in MySQL, helping AI users build and refresh knowledge of the codebase
 
 ## App Paths
 
 - `/ai/` - main chat app
-- `/ai/admin.php` - admin panel
-- `/ai/admin.php?standalone=1` - admin in standalone layout (no chat sidebar)
-- `/ai/admin.php?standalone=1&section=rooms` - rooms operations
-- `/ai/admin.php?standalone=1&section=personas` - personas operations
+- `/ai/admin/` - admin panel
+- `/ai/admin/?section=rooms` - rooms operations
+- `/ai/admin/?section=personas` - personas operations
+- `/ai/admin/mc.php` - Memory Coder (codebase browser + AI summaries)
 - `/ai/install.php` - first-time install/seed flow
 - `/ai/webhook.php?key=...` - inbound webhook endpoint
 
@@ -81,15 +82,17 @@ Database schema:
 
 ## Admin Sections
 
-`admin.php` supports these section areas:
+The admin panel at `/ai/admin/` supports these sections:
 
 - Settings
 - Rooms
 - Users
 - AI Users
 - Personas
-- Providers
+- Providers (AI Setup)
 - Webhooks
+- Memories
+- **Memory Coder** (`/ai/admin/mc.php`) — standalone tool, linked from the admin sidebar
 
 ### Rooms
 
@@ -129,6 +132,27 @@ You can:
 - insert curated templates
 - export one/all personas as JSON
 - import JSON payloads (single object, list, or `{ "personas": [...] }`)
+
+### Memory Coder
+
+Memory Coder (`/ai/admin/mc.php`) is a two-panel codebase browser designed to help AI users learn and stay current with the project's source files.
+
+![Memory Coder](assets/imgs/mc_chat.png)
+
+**Left panel** — file browser:
+- Configurable root directory (stored in `settings` as `mc.base_dir`)
+- Directory navigation with breadcrumbs
+- Per-file AI summarize button (shows ✓ badge when a summary exists)
+- Works on Windows and Linux (cross-platform path handling)
+
+**Right panel** — file viewer:
+- Inline syntax-highlighted source view with raw/download links
+- AI user selector (choose which configured AI User generates the summary)
+- One-click summarize — sends up to 150 KB of file content to the selected AI user's endpoint
+- Summary saved to the `mc_summaries` MySQL table (upserted on regenerate)
+- Delete summary button
+
+The `mc_summaries` table is created automatically on first page load. Summaries can be used as memory input for AI users to understand the codebase before replying in DMs or channels.
 
 ## Webhook Usage
 
